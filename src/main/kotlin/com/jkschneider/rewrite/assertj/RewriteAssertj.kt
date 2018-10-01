@@ -19,11 +19,11 @@ object RewriteAssertj {
                                 when (meth.name.simpleName) {
                                     "expect" -> {
                                         refactor.run(methodDecl.body!!, DeleteStatement(meth))
-                                        return ExpectedExceptionParams(meth.args.args.first(), null, meth)
+                                        return ExpectedExceptionParams(meth.args.args.first(), null)
                                     }
                                     "expectMessage" -> {
                                         refactor.run(methodDecl.body!!, DeleteStatement(meth))
-                                        return ExpectedExceptionParams(null, meth.args.args.first(), meth)
+                                        return ExpectedExceptionParams(null, meth.args.args.first())
                                     }
                                 }
                                 return super.visitMethodInvocation(meth)
@@ -35,8 +35,6 @@ object RewriteAssertj {
                                     reduced = reduced.copy(message = r2.message)
                                 if (r2.type != null)
                                     reduced = reduced.copy(type = r2.type)
-                                if (r2.lastExpectStatement != null)
-                                    reduced = reduced.copy(lastExpectStatement = r2.lastExpectStatement)
                                 return reduced
                             }
                         })?.let { params ->
@@ -54,8 +52,7 @@ object RewriteAssertj {
         return refactor.fix().printTrimmed()
     }
 
-    private data class ExpectedExceptionParams(val type: Expression? = null, val message: Expression? = null,
-                                               val lastExpectStatement: Expression? = null)
+    private data class ExpectedExceptionParams(val type: Expression? = null, val message: Expression? = null)
 
     private class DeleteStatement(val statement: Statement,
                                   override val ruleName: String = "delete-statement") : RefactorVisitor<Tr.Block<Tree>>() {
